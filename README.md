@@ -106,7 +106,31 @@ graph TD
 * Streamlit merges the deterministic and AI-classified results into a final exportable JSON.
 
 # 13. Agentic Workflow (if applicable)
-The system operates as a single-agent orchestrator. The central Python script acts as the manager, utilizing the LLM exclusively as a specialized sub-routine for contextual disambiguation.
+```mermaid
+sequenceDiagram
+    autonumber
+    participant M as Python Manager (Orchestrator)
+    participant D as Rule Engine (Tool)
+    participant A as Llama 3.2 (Reasoning Sub-Routine)
+    participant V as Pydantic Validator
+
+    M->>M: Ingest record & inspect fields
+    alt Clear Deterministic Match
+        M->>D: Route to rule evaluation
+        D-->>M: Return high-confidence voucher type
+    else Ambiguous Context / Edge Case
+        M->>M: Inject Few-Shot accounting context & schema
+        M->>A: Invoke LLM reasoning sub-routine
+        A-->>M: Emit structured candidate payload
+        M->>V: Validate against JSON schema
+        alt Schema Validated
+            V-->>M: Pass structured classification + rationale
+        else Parse Error / Hallucination
+            V-->>M: Trigger exception & fallback route
+        end
+    end
+    M->>M: Commit to final state ledger
+```
 
 # 14. Technology Stack
 * **Language**: Python 3.11+
