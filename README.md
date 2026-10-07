@@ -107,29 +107,25 @@ graph TD
 
 # 13. Agentic Workflow (if applicable)
 ```mermaid
-sequenceDiagram
-    autonumber
-    participant M as Python Manager (Orchestrator)
-    participant D as Rule Engine (Tool)
-    participant A as Llama 3.2 (Reasoning Sub-Routine)
-    participant V as Pydantic Validator
+graph TD
+    classDef main fill:#2C3E50,stroke:#2980B9,stroke-width:2px,color:#fff
+    classDef rule fill:#27AE60,stroke:#2ECC71,stroke-width:2px,color:#fff
+    classDef ai fill:#8E44AD,stroke:#9B59B6,stroke-width:2px,color:#fff
+    classDef out fill:#E67E22,stroke:#D35400,stroke-width:2px,color:#fff
 
-    M->>M: Ingest record & inspect fields
-    alt Clear Deterministic Match
-        M->>D: Route to rule evaluation
-        D-->>M: Return high-confidence voucher type
-    else Ambiguous Context / Edge Case
-        M->>M: Inject Few-Shot accounting context & schema
-        M->>A: Invoke LLM reasoning sub-routine
-        A-->>M: Emit structured candidate payload
-        M->>V: Validate against JSON schema
-        alt Schema Validated
-            V-->>M: Pass structured classification + rationale
-        else Parse Error / Hallucination
-            V-->>M: Trigger exception & fallback route
-        end
-    end
-    M->>M: Commit to final state ledger
+    A[Transaction Record]:::main --> B[Python Manager / Orchestrator]:::main
+
+    B -->|Obvious Pattern e.g., Salary, Internal Transfer| C[Rule Engine Tool]:::rule
+    B -->|Ambiguous / Complex Accounting Context| D[LLM Reasoning Worker<br>Llama 3.2]:::ai
+
+    C --> E[Verified Voucher Output]:::out
+    D --> F{Pydantic Check}:::ai
+    
+    F -->|Valid JSON| E
+    F -->|Parsing Error| G[Flag for Manual Review]:::out
+
+    E --> H[Final Ledger]:::out
+    G --> H
 ```
 
 # 14. Technology Stack
